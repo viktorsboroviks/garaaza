@@ -15,27 +15,10 @@ static const size_t FIRST_AVAILABLE_I = SIZE_MAX;
 template <typename T>
 class Storage {
 public:
-    size_t add(T x)
-    {
-        assert(_free_i.size() <= _storage.size());
-
-        // first try to occupy free storage
-        if (!_free_i.empty()) {
-            size_t i = *_free_i.begin();
-            _storage[i] = x;
-            _free_i.erase(i);
-            return i;
-        }
-
-        // if no free storage available, extend storage
-        _storage.push_back(x);
-        return _storage.size() - 1;
-    }
-
-    size_t add_at(size_t i, T x)
+    size_t add(T x, size_t i = FIRST_AVAILABLE_I)
     {
         if (i == FIRST_AVAILABLE_I) {
-            return add(x);
+            return _add_at_first_available_i(x);
         }
 
         // expand storage if needed
@@ -118,6 +101,23 @@ public:
 private:
     std::vector<T> _storage;
     std::set<size_t> _free_i;
+
+    size_t _add_at_first_available_i(T x)
+    {
+        assert(_free_i.size() <= _storage.size());
+
+        // first try to occupy free storage
+        if (!_free_i.empty()) {
+            size_t i = *_free_i.begin();
+            _storage[i] = x;
+            _free_i.erase(i);
+            return i;
+        }
+
+        // if no free storage available, extend storage
+        _storage.push_back(x);
+        return _storage.size() - 1;
+    }
 };
 
 }  // namespace garaza
