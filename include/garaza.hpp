@@ -69,6 +69,18 @@ public:
         return all_i().size();
     }
 
+    bool contains(T x)
+    {
+        for (size_t i = 0; i < _storage.size(); i++) {
+            if (!_free_i.contains(i)) {
+                if (_storage[i] == x) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 private:
     std::vector<T> _storage;
     std::set<size_t> _free_i;
