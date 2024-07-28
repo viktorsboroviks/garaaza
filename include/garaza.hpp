@@ -10,6 +10,8 @@ bool vector_contains(const std::vector<T>& v, const T& x)
     return std::find(v.begin(), v.end(), x) != v.end();
 }
 
+static const size_t FIRST_AVAILABLE_I = SIZE_MAX;
+
 template <typename T>
 class Storage {
 public:
@@ -30,6 +32,26 @@ public:
         return _storage.size() - 1;
     }
 
+    size_t add_at(size_t i, T x)
+    {
+        if (i == FIRST_AVAILABLE_I) {
+            return add(x);
+        }
+
+        // expand storage if needed
+        if (i >= _storage.size()) {
+            const size_t new_storage_size = i + 1;
+            _storage.resize(new_storage_size);
+            for (size_t fi = _storage.size(); fi < new_storage_size; fi++) {
+                _free_i.insert(fi);
+            }
+        }
+
+        _storage[i] = x;
+        _free_i.erase(i);
+        return i;
+    }
+
     void remove(size_t i)
     {
         assert(i < _storage.size());
@@ -40,7 +62,8 @@ public:
 
     T* at(size_t i)
     {
-        if (i >= _storage.size() || _free_i.contains(i)) {
+        if (i == FIRST_AVAILABLE_I || i >= _storage.size() ||
+            _free_i.contains(i)) {
             return nullptr;
         }
 
@@ -68,6 +91,11 @@ public:
     size_t size()
     {
         return all_i().size();
+    }
+
+    size_t max_size()
+    {
+        return FIRST_AVAILABLE_I - 1;
     }
 
     bool contains(T x)
