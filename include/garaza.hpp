@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <set>
 #include <vector>
 
@@ -33,7 +34,7 @@ public:
     {
         assert(i < _storage.size());
         assert(!_free_i.contains(i));
-        _free_i.push(i);
+        _free_i.insert(i);
         assert(_free_i.size() <= _storage.size());
     }
 
@@ -79,6 +80,11 @@ public:
             }
         }
         return false;
+    }
+
+    bool contains_i(size_t i)
+    {
+        return at(i) != nullptr;
     }
 
 private:
