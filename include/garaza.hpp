@@ -2,6 +2,8 @@
 #include <set>
 #include <vector>
 
+#include "rododendrs.hpp"
+
 namespace garaza {
 
 template <typename T>
@@ -10,15 +12,20 @@ bool vector_contains(const std::vector<T>& v, const T& x)
     return std::find(v.begin(), v.end(), x) != v.end();
 }
 
-static const size_t FIRST_AVAILABLE_I = SIZE_MAX;
+static const size_t I_FIRST_AVAILABLE = SIZE_MAX;
+static const size_t I_RANDOM = I_FIRST_AVAILABLE - 1;
 
 template <typename T>
 class Storage {
 public:
-    size_t add(T x, size_t i = FIRST_AVAILABLE_I)
+    size_t add(T x, size_t i = I_FIRST_AVAILABLE)
     {
-        if (i == FIRST_AVAILABLE_I) {
+        if (i == I_FIRST_AVAILABLE) {
             return _add_at_first_available_i(x);
+        }
+
+        if (i == I_RANDOM) {
+            return _add_at_random_i(x);
         }
 
         // expand storage if needed
@@ -35,17 +42,26 @@ public:
         return i;
     }
 
-    void remove(size_t i)
+    size_t remove(size_t i)
     {
+        if (i == I_FIRST_AVAILABLE) {
+            return remove(all_i()[0]);
+        }
+
+        if (i == I_RANDOM) {
+            return remove(rnd_i());
+        }
+
         assert(i < _storage.size());
         assert(!_free_i.contains(i));
         _free_i.insert(i);
         assert(_free_i.size() <= _storage.size());
+        return i;
     }
 
     T* at(size_t i)
     {
-        if (i == FIRST_AVAILABLE_I || i >= _storage.size() ||
+        if (i == I_FIRST_AVAILABLE || i == I_RANDOM || i >= _storage.size() ||
             _free_i.contains(i)) {
             return nullptr;
         }
@@ -71,6 +87,14 @@ public:
         return *std::max_element(v.begin(), v.end());
     }
 
+    size_t rnd_i()
+    {
+        const auto all = all_i();
+        assert(!all.empty());
+        const size_t i_i = rododendrs::rnd01() * all.size();
+        return all[i_i];
+    }
+
     size_t size()
     {
         return all_i().size();
@@ -78,7 +102,7 @@ public:
 
     size_t max_size()
     {
-        return FIRST_AVAILABLE_I - 1;
+        return I_RANDOM - 1;
     }
 
     bool contains(T x)
@@ -109,6 +133,25 @@ private:
         // first try to occupy free storage
         if (!_free_i.empty()) {
             size_t i = *_free_i.begin();
+            _storage[i] = x;
+            _free_i.erase(i);
+            return i;
+        }
+
+        // if no free storage available, extend storage
+        _storage.push_back(x);
+        return _storage.size() - 1;
+    }
+
+    size_t _add_at_random_i(T x)
+    {
+        assert(_free_i.size() <= _storage.size());
+
+        // first try to occupy free storage
+        if (!_free_i.empty()) {
+            const std::vector<size_t> v_free_i(_free_i.begin(), _free_i.end());
+            const size_t i_i = rododendrs::rnd01() * v_free_i.size();
+            const size_t i = v_free_i[i_i];
             _storage[i] = x;
             _free_i.erase(i);
             return i;
