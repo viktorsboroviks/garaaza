@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <list>
 #include <set>
 #include <vector>
 
@@ -76,6 +77,16 @@ public:
             if (!_free_i.contains(i)) {
                 ret.push_back(i);
             }
+        }
+
+        return ret;
+    }
+
+    const std::list<T> list()
+    {
+        std::list<T> ret;
+        for (size_t i : all_i()) {
+            ret.push_back(_storage[i]);
         }
 
         return ret;
