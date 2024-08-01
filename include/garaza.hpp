@@ -1,4 +1,6 @@
+#pragma once
 #include <algorithm>
+#include <cassert>
 #include <list>
 #include <set>
 #include <vector>
@@ -27,12 +29,11 @@ public:
         _storage[i] = x;
     }
 
-    size_t remove(size_t i)
+    void remove(size_t i)
     {
         assert(contains_i(i));
         _free_i.insert(i);
         assert(_free_i.size() <= _storage.size());
-        return i;
     }
 
     T* at(size_t i)
