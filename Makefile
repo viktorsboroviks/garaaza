@@ -1,6 +1,6 @@
 .PHONY: \
 	format \
-	clang-format \
+	format-cpp \
 	lint \
 	lint-cpp \
 	clean \
@@ -10,9 +10,9 @@ rododendrs:
 	git clone git@github.com:viktorsboroviks/rododendrs.git
 	cd rododendrs; git checkout v1.4
 
-format: clang-format
+format: format-cpp
 
-clang-format: include/garaza.hpp
+format-cpp: include/garaza.hpp
 	clang-format -i $^
 
 lint: lint-cpp
