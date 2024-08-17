@@ -63,6 +63,7 @@ public:
     {
         std::list<T> ret;
         for (size_t i : all_i()) {
+            // cppcheck-suppress useStlAlgorithm
             ret.push_back(_storage[i]);
         }
 
@@ -120,7 +121,7 @@ private:
 
         // first try to occupy free storage
         if (!_free_i.empty()) {
-            size_t i = *_free_i.begin();
+            size_t i    = *_free_i.begin();
             _storage[i] = x;
             _free_i.erase(i);
             return i;
