@@ -2,11 +2,13 @@
 	format \
 	clang-format \
 	lint \
-	cppcheck-lint
+	cppcheck-lint \
+	clean \
+	distclean
 
 rododendrs:
 	git clone git@github.com:viktorsboroviks/rododendrs.git
-	cd rododendrs; git checkout v1.1
+	cd rododendrs; git checkout v1.4
 
 format: clang-format
 
@@ -33,3 +35,9 @@ cppcheck-lint: include/garaza.hpp
 		-I./include \
 		-I./rododendrs/include \
 		$^
+
+clean:
+	rm -rfv *.txt
+
+distclean: clean
+	rm -rfv rododendrs
