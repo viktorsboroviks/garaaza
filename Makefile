@@ -2,7 +2,7 @@
 	format \
 	clang-format \
 	lint \
-	cppcheck-lint \
+	lint-cpp \
 	clean \
 	distclean
 
@@ -15,9 +15,9 @@ format: clang-format
 clang-format: include/garaza.hpp
 	clang-format -i $^
 
-lint: cppcheck-lint
+lint: lint-cpp
 
-cppcheck-lint: include/garaza.hpp
+lint-cpp: include/garaza.hpp
 	cppcheck \
 		--enable=warning,portability,performance \
 		--enable=style,information \
