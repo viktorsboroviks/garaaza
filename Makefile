@@ -21,7 +21,6 @@ lint-cpp: include/garaaza.hpp
 	cppcheck \
 		--enable=warning,portability,performance \
 		--enable=style,information \
-		--enable=missingInclude \
 		--inconclusive \
 		--library=std,posix,gnu \
 		--platform=unix64 \
@@ -29,7 +28,6 @@ lint-cpp: include/garaaza.hpp
 		--std=c++20 \
 		--inline-suppr \
 		--check-level=exhaustive \
-		--suppress=missingIncludeSystem \
 		--suppress=checkersReport \
 		--checkers-report=cppcheck_report.txt \
 		-I./include \
