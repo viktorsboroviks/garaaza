@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <cassert>
+#include <deque>
 #include <list>
 #include <set>
 #include <vector>
@@ -130,6 +131,86 @@ private:
         // if no free storage available, extend storage
         _storage.push_back(x);
         return _storage.size() - 1;
+    }
+};
+
+template <typename T, auto comp_fn>
+class SortedStorage {
+private:
+    std::vector<T> _data;  // allocate once, do not resize
+    std::vector<size_t> _sorted_idx;
+    std::deque<size_t> _free_idx;
+
+public:
+    explicit SortedStorage(size_t n)
+    {
+        _data.reserve(n);
+        _sorted_idx.reserve(n);
+        for (size_t i = 0; i < n; i++) {
+            _free_idx.push_back(i);
+        }
+    }
+
+    void reset()
+    {
+        _data.clear();
+        _sorted_idx.clear();
+        _free_idx.clear();
+        for (size_t i = 0; i < _data.capacity(); i++) {
+            _free_idx.push_back(i);
+        }
+    }
+
+    size_t size() const
+    {
+        return _sorted_idx.size();
+    }
+
+    bool empty() const
+    {
+        return _sorted_idx.empty();
+    }
+
+    T at(size_t i) const
+    {
+        assert(i < _data.size());
+        return _data[_sorted_idx[i]];
+    }
+
+    T& at(size_t i)
+    {
+        assert(i < _data.size());
+        return _data[_sorted_idx[i]];
+    }
+
+    // insert a new element in sorted order
+    void insert(T val)
+    {
+        assert(!_free_idx.empty());
+        size_t new_i = _free_idx.pop_front();
+        _data[new_i] = val;
+        auto it      = std::lower_bound(_sorted_idx.begin(),
+                                   _sorted_idx.end(),
+                                   new_i,
+                                   [this](size_t lhs, size_t rhs) {
+                                       return comp_fn(_data[lhs], _data[rhs]);
+                                   });
+        _sorted_idx.insert(it, new_i);
+        // no sense to empty the removed data cell itself
+
+        assert(_sorted_idx.front() <= _sorted_idx.back());
+        assert(_sorted_idx.size() + _free_idx.size() == _data.size());
+    }
+
+    void remove_at(size_t i)
+    {
+        assert(i < _data.size());
+        size_t remove_i = _sorted_idx[i];
+        _sorted_idx.erase(_sorted_idx.begin() + i);
+        _free_idx.push_back(remove_i);
+
+        assert(_sorted_idx.front() <= _sorted_idx.back());
+        assert(_sorted_idx.size() + _free_idx.size() == _data.size());
     }
 };
 
