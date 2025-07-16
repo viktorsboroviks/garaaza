@@ -8,7 +8,7 @@
 
 #include "rododendrs.hpp"
 
-namespace garaza {
+namespace garaaza {
 
 template <typename T>
 bool vector_contains(const std::vector<T>& v, const T& x)
@@ -214,4 +214,4 @@ public:
     }
 };
 
-}  // namespace garaza
+}  // namespace garaaza

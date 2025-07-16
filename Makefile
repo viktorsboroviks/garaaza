@@ -12,12 +12,12 @@ rododendrs:
 
 format: format-cpp
 
-format-cpp: include/garaza.hpp
+format-cpp: include/garaaza.hpp
 	clang-format -i $^
 
 lint: lint-cpp
 
-lint-cpp: include/garaza.hpp
+lint-cpp: include/garaaza.hpp
 	cppcheck \
 		--enable=warning,portability,performance \
 		--enable=style,information \
