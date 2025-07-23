@@ -10,8 +10,8 @@
 
 namespace garaaza {
 
-template <typename T>
-bool vector_contains(const std::vector<T>& v, const T& x)
+template <typename Tcontainer, typename Tvalue>
+bool contains(const<Tcontainer<Tvalue>>& v, const T& x)
 {
     return std::find(v.begin(), v.end(), x) != v.end();
 }
@@ -138,79 +138,127 @@ template <typename T, auto comp_fn>
 class SortedStorage {
 private:
     std::vector<T> _data;  // allocate once, do not resize
-    std::vector<size_t> _sorted_idx;
-    std::deque<size_t> _free_idx;
+    std::vector<size_t> _idx_sorted;
+    std::deque<size_t> _idx_unsorted;
+    std::deque<size_t> _idx_free;
+
+    size_t _add_to_sorted(size_t i)
+    {
+        const auto it =
+                std::lower_bound(_idx_sorted.begin(),
+                                 _idx_sorted.end(),
+                                 i,
+                                 [this](size_t lhs, size_t rhs) {
+                                     return comp_fn(_data[lhs], _data[rhs]);
+                                 });
+        _idx_sorted.insert(it, i);
+        // no sense to empty the removed data cell itself
+
+        assert(_idx_sorted.front() <= _idx_sorted.back());
+        assert(_idx_sorted.size() + _idx_free.size() + _idx_unsorted.size() ==
+               _data.size());
+    }
 
 public:
     explicit SortedStorage(size_t n)
     {
-        _data.reserve(n);
-        _sorted_idx.reserve(n);
+        _data.resize(n);
+        _idx_sorted.reserve(n);
         for (size_t i = 0; i < n; i++) {
-            _free_idx.push_back(i);
+            _idx_free.push_back(i);
         }
     }
 
     void reset()
     {
-        _data.clear();
-        _sorted_idx.clear();
-        _free_idx.clear();
+        _idx_sorted.clear();
+        _idx_free.clear();
+        _idx_unsorted.clear();
         for (size_t i = 0; i < _data.capacity(); i++) {
-            _free_idx.push_back(i);
+            _idx_free.push_back(i);
         }
+    }
+
+    size_t capacity() const
+    {
+        assert(_data.capacity() == _idx_sorted.capacity());
+        return _data.capacity();
     }
 
     size_t size() const
     {
-        return _sorted_idx.size();
+        return _idx_sorted.size();
     }
 
     bool empty() const
     {
-        return _sorted_idx.empty();
+        return _idx_sorted.empty();
     }
 
-    T at(size_t i) const
+    bool full() const
     {
-        assert(i < _data.size());
-        return _data[_sorted_idx[i]];
+        return _idx_free.empty();
+    }
+
+    size_t free_i() const
+    {
+        assert(!full());
+        return _idx_free.front();
     }
 
     T& at(size_t i)
     {
         assert(i < _data.size());
-        return _data[_sorted_idx[i]];
+        return _data[i];
     }
 
-    // insert a new element in sorted order
-    void insert(T val)
-    {
-        assert(!_free_idx.empty());
-        size_t new_i = _free_idx.pop_front();
-        _data[new_i] = val;
-        auto it      = std::lower_bound(_sorted_idx.begin(),
-                                   _sorted_idx.end(),
-                                   new_i,
-                                   [this](size_t lhs, size_t rhs) {
-                                       return comp_fn(_data[lhs], _data[rhs]);
-                                   });
-        _sorted_idx.insert(it, new_i);
-        // no sense to empty the removed data cell itself
-
-        assert(_sorted_idx.front() <= _sorted_idx.back());
-        assert(_sorted_idx.size() + _free_idx.size() == _data.size());
-    }
-
-    void remove_at(size_t i)
+    T& sorted_at(size_t i)
     {
         assert(i < _data.size());
-        size_t remove_i = _sorted_idx[i];
-        _sorted_idx.erase(_sorted_idx.begin() + i);
-        _free_idx.push_back(remove_i);
+        return _data[_idx_sorted[i]];
+    }
 
-        assert(_sorted_idx.front() <= _sorted_idx.back());
-        assert(_sorted_idx.size() + _free_idx.size() == _data.size());
+    // add a new element by value without processing it
+    T& add(const T& val)
+    {
+        assert(!_idx_free.empty());
+        const size_t i = _idx_free.front();
+        _idx_free.pop_front();
+        _data[i] = val;
+        _idx_unsorted.push_back(i);
+        return _data[i];
+    }
+
+    // add a new element by index without processing it
+    T& add(size_t i)
+    {
+        assert(!full());
+        const auto it = std::find(_idx_free.begin(), _idx_free.end(), i);
+        assert(it != _idx_free.end());
+        _idx_free.erase(it);
+        _idx_unsorted.push_back(i);
+        return _data[i];
+    }
+
+    void sort()
+    {
+        while (!_idx_unsorted.empty()) {
+            const size_t i = _idx_unsorted.front();
+            _idx_unsorted.pop_front();
+            _add_to_sorted(i);
+        }
+    }
+
+    void rm_sorted_at(size_t i)
+    {
+        assert(i < _data.size());
+        const size_t rm_i = _idx_sorted[i];
+        _idx_sorted.erase(_idx_sorted.begin() + i);
+        _idx_free.push_back(rm_i);
+
+        assert(_idx_sorted.front() <= _idx_sorted.back());
+        assert(_idx_sorted.size() + _idx_free.size() + _idx_unsorted.size() ==
+               _data.size());
     }
 };
 

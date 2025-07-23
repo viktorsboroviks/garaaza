@@ -31,7 +31,6 @@ lint-cpp: include/garaaza.hpp
 		--suppress=checkersReport \
 		--checkers-report=cppcheck_report.txt \
 		-I./include \
-		-I./rododendrs/include \
 		$^
 
 clean:
