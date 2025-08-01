@@ -142,7 +142,7 @@ private:
     std::deque<size_t> _idx_unsorted;
     std::deque<size_t> _idx_free;
 
-    size_t _add_to_sorted(size_t i)
+    void _add_to_sorted(size_t i)
     {
         const auto it =
                 std::lower_bound(_idx_sorted.begin(),
@@ -154,7 +154,6 @@ private:
         _idx_sorted.insert(it, i);
         // no sense to empty the removed data cell itself
 
-        assert(_idx_sorted.front() <= _idx_sorted.back());
         assert(_idx_sorted.size() + _idx_free.size() + _idx_unsorted.size() ==
                _data.size());
     }
@@ -200,24 +199,19 @@ public:
         return _idx_free.empty();
     }
 
-    size_t free_i() const
+    size_t unsorted_free_i() const
     {
         assert(!full());
         return _idx_free.front();
     }
 
-    T& at(size_t i)
+    T& unsorted_at(size_t i)
     {
         assert(i < _data.size());
         return _data[i];
     }
 
-    size_t sorted_i(size_t i) const
-    {
-        return _idx_sorted[i];
-    }
-
-    T& sorted_at(size_t i)
+    T& at(size_t i)
     {
         assert(i < _data.size());
         return _data[_idx_sorted[i]];
@@ -254,14 +248,13 @@ public:
         }
     }
 
-    void rm_sorted_at(size_t i)
+    void rm_at(size_t i)
     {
         assert(i < _data.size());
         const size_t rm_i = _idx_sorted[i];
         _idx_sorted.erase(_idx_sorted.begin() + i);
         _idx_free.push_back(rm_i);
 
-        assert(_idx_sorted.front() <= _idx_sorted.back());
         assert(_idx_sorted.size() + _idx_free.size() + _idx_unsorted.size() ==
                _data.size());
     }
