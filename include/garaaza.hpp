@@ -10,8 +10,8 @@
 
 namespace garaaza {
 
-template <typename Tcontainer, typename Tvalue>
-bool contains(const<Tcontainer<Tvalue>>& v, const T& x)
+template <typename Tcontainer, typename T>
+bool contains(const Tcontainer& v, const T& x)
 {
     return std::find(v.begin(), v.end(), x) != v.end();
 }
@@ -134,7 +134,7 @@ private:
     }
 };
 
-template <typename T, auto comp_fn>
+template <typename T, auto TComp_fn>
 class SortedStorage {
 private:
     std::vector<T> _data;  // allocate once, do not resize
@@ -149,7 +149,7 @@ private:
                                  _idx_sorted.end(),
                                  i,
                                  [this](size_t lhs, size_t rhs) {
-                                     return comp_fn(_data[lhs], _data[rhs]);
+                                     return TComp_fn(_data[lhs], _data[rhs]);
                                  });
         _idx_sorted.insert(it, i);
         // no sense to empty the removed data cell itself
@@ -210,6 +210,11 @@ public:
     {
         assert(i < _data.size());
         return _data[i];
+    }
+
+    size_t sorted_i(size_t i) const
+    {
+        return _idx_sorted[i];
     }
 
     T& sorted_at(size_t i)
