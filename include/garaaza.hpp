@@ -217,6 +217,12 @@ public:
         return _data[_idx_sorted[i]];
     }
 
+    const T& at(size_t i) const
+    {
+        assert(i < _data.size());
+        return _data[_idx_sorted[i]];
+    }
+
     // add a new element by value without processing it
     T& add(const T& val)
     {
