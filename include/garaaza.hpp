@@ -33,14 +33,14 @@ public:
     void remove(size_t i)
     {
         assert(contains_i(i));
-        _free_i.insert(i);
-        assert(_free_i.size() <= _storage.size());
+        _i_free.insert(i);
+        assert(_i_free.size() <= _storage.size());
     }
 
     T* at(size_t i)
     {
         assert(i < _storage.size());
-        if (_free_i.contains(i)) {
+        if (_i_free.contains(i)) {
             assert(!contains_i(i));
             return nullptr;
         }
@@ -52,7 +52,7 @@ public:
     {
         std::vector<size_t> ret;
         for (size_t i = 0; i < _storage.size(); i++) {
-            if (!_free_i.contains(i)) {
+            if (!_i_free.contains(i)) {
                 ret.push_back(i);
             }
         }
@@ -98,7 +98,7 @@ public:
     bool contains(T x)
     {
         for (size_t i = 0; i < _storage.size(); i++) {
-            if (!_free_i.contains(i)) {
+            if (!_i_free.contains(i)) {
                 if (_storage[i] == x) {
                     return true;
                 }
@@ -114,17 +114,17 @@ public:
 
 private:
     std::vector<T> _storage;
-    std::set<size_t> _free_i;
+    std::set<size_t> _i_free;
 
     size_t _add_at_first_available_i(T x)
     {
-        assert(_free_i.size() <= _storage.size());
+        assert(_i_free.size() <= _storage.size());
 
         // first try to occupy free storage
-        if (!_free_i.empty()) {
-            size_t i    = *_free_i.begin();
+        if (!_i_free.empty()) {
+            size_t i    = *_i_free.begin();
             _storage[i] = x;
-            _free_i.erase(i);
+            _i_free.erase(i);
             return i;
         }
 
@@ -199,25 +199,36 @@ public:
         return _idx_free.empty();
     }
 
-    size_t unsorted_free_i() const
+    size_t i_free() const
     {
         assert(!full());
         return _idx_free.front();
     }
 
-    T& unsorted_at(size_t i)
+    size_t i_sorted(size_t i) const
     {
-        assert(i < _data.size());
-        return _data[i];
+        for (size_t is = 0; is < _idx_sorted.size(); is++) {
+            if (_idx_sorted[is] == i) {
+                return is;
+            }
+        }
+        assert(false);
+        return 0;
     }
 
     T& at(size_t i)
     {
         assert(i < _data.size());
+        return _data[i];
+    }
+
+    T& at_sorted(size_t i)
+    {
+        assert(i < _data.size());
         return _data[_idx_sorted[i]];
     }
 
-    const T& at(size_t i) const
+    const T& at_sorted(size_t i) const
     {
         assert(i < _data.size());
         return _data[_idx_sorted[i]];
@@ -254,15 +265,21 @@ public:
         }
     }
 
-    void rm_at(size_t i)
+    void rm(size_t i)
     {
         assert(i < _data.size());
-        const size_t rm_i = _idx_sorted[i];
-        _idx_sorted.erase(_idx_sorted.begin() + i);
-        _idx_free.push_back(rm_i);
+        _idx_sorted.erase(_idx_sorted.begin() + i_sorted(i));
+        _idx_free.push_back(i);
 
         assert(_idx_sorted.size() + _idx_free.size() + _idx_unsorted.size() ==
                _data.size());
+    }
+
+    void rm_sorted(size_t i)
+    {
+        assert(i < _data.size());
+        const size_t rm_i = _idx_sorted[i];
+        rm(rm_i);
     }
 };
 
