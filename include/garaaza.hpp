@@ -225,7 +225,10 @@ public:
     T& at_sorted(size_t i)
     {
         assert(i < _data.size());
-        return _data[_idx_sorted[i]];
+        const size_t i_data = _idx_sorted[i];
+        assert(std::find(_idx_free.begin(), _idx_free.end(), i_data) ==
+               _idx_free.end());
+        return _data[i_data];
     }
 
     const T& at_sorted(size_t i) const
